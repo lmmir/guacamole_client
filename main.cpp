@@ -2,17 +2,16 @@
 
 #include <QApplication>
 #include <QDebug>
-#include <fcntl.h>
 #include <iostream>
-#include <linux/input.h>
 #include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
+#include <dlglogin.h>
 int main(int argc, char *argv[]) {
 
   QApplication a(argc, argv);
-  MainWindow w;
-  w.show();
+  DlgLogin dlgLogin;
+  if (dlgLogin.exec() == QDialog::Accepted) {
+  }
+
   return a.exec();
 }

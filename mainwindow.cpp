@@ -5,7 +5,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QTimer>
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QString token, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
 
@@ -18,13 +18,17 @@ MainWindow::MainWindow(QWidget *parent)
           SLOT(slotError(QAbstractSocket::SocketError)));
 
   QUrl url(
-      "wss://xxxxxxxxx/guacamole/"
-      "websocket-tunnel?token="
-      "FC1069C8AD0C05CCA5FE2768C658CA2EDA6C13F3209746A4AF3E95CA2046425B&GUAC_"
-      "DATA_SOURCE=mysql&GUAC_ID=1699&GUAC_TYPE=c&GUAC_WIDTH=1211&GUAC_HEIGHT="
-      "891&GUAC_DPI=96&GUAC_AUDIO=audio%2FL8&GUAC_AUDIO=audio%2FL16&GUAC_IMAGE="
-      "image%2Fjpeg&GUAC_IMAGE=image%2Fpng&GUAC_IMAGE=image%2Fwebp"); // replace
-                                                                      // here
+      QString("wss://%2/guacamole/"
+              "websocket-tunnel?token="
+              "%1&GUAC_"
+              "DATA_SOURCE=mysql&GUAC_ID=1699&GUAC_TYPE=c&GUAC_WIDTH=1211&GUAC_"
+              "HEIGHT="
+              "891&GUAC_DPI=96&GUAC_AUDIO=audio%2FL8&GUAC_AUDIO=audio%2FL16&"
+              "GUAC_IMAGE="
+              "image%2Fjpeg&GUAC_IMAGE=image%2Fpng&GUAC_IMAGE=image%2Fwebp")
+          .arg(token)
+          .arg(QApplication::arguments()[1])); // replace
+                                               // here
   mWebSocket->open(url);
 
   this->showFullScreen();

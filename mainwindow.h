@@ -16,7 +16,8 @@ class MainWindow : public QMainWindow,
                    public BlobMsg,
                    public EndMsg,
                    public SizeMsg,
-                   public CursorMsg {
+                   public CursorMsg,
+                   public ClipboardMsg {
   Q_OBJECT
 
 public:
@@ -37,7 +38,7 @@ private:
   Ui::MainWindow *ui;
 
   QImage mImage;
-  QMap<int, ImgMsg::Image> mMapImg;
+  QMap<int, QSharedPointer<BlobMsg::Data>> mMapData;
 
 protected:
   void mousePressEvent(QMouseEvent *event);
@@ -57,5 +58,6 @@ public:
   void doMsg(EndMsg *msg);
   void doMsg(SizeMsg *msg);
   void doMsg(CursorMsg *msg);
+  void doMsg(ClipboardMsg *msg);
 };
 #endif // MAINWINDOW_H

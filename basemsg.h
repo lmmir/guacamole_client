@@ -5,6 +5,7 @@
 #include <QMap>
 #include <QObject>
 #include <QStringList>
+
 class BaseMsg {
 protected:
   virtual ~BaseMsg() { //
@@ -48,14 +49,28 @@ protected:
 signals:
 };
 
+class BlobMsg : public TBaseMsg<BlobMsg> {
+public:
+  struct Data {
+    virtual ~Data(){};
+    QByteArray data;
+    int stream;
+  };
+
+public:
+  BlobMsg() { //
+    registerMsg("blob", this);
+  }
+
+protected:
+};
+
 class ImgMsg : public TBaseMsg<ImgMsg> {
 public:
-  struct Image {
+  struct Image : BlobMsg::Data {
     QString x;
     QString y;
-    QByteArray data;
     int mask;
-    int stream;
     int layer;
   };
 
@@ -72,14 +87,6 @@ public:
 protected:
 };
 
-class BlobMsg : public TBaseMsg<BlobMsg> {
-public:
-  BlobMsg() { //
-    registerMsg("blob", this);
-  }
-
-protected:
-};
 class CursorMsg : public TBaseMsg<CursorMsg> {
 public:
   CursorMsg() { //
@@ -106,6 +113,14 @@ public:
     QString str = this->getParam(1);
     QString strSync = "4.sync,13." + str + ";";
     return strSync;
+  }
+
+protected:
+};
+class ClipboardMsg : public TBaseMsg<ClipboardMsg> {
+public:
+  ClipboardMsg() { //
+    registerMsg("clipboard", this);
   }
 
 protected:

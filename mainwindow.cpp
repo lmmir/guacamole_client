@@ -241,8 +241,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     return;
   }
 
-  // qDebug() << event->modifiers();
-  QString strKey = QString::number(event->key());
+  QString strKey = QString::number(event->nativeVirtualKey());
   QStringList cmd;
   cmd.append("3.key");
   cmd.append(QString::number(strKey.length()) + "." + strKey);
@@ -251,26 +250,54 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
   cmd.append(QString::number(mask.length()) + "." + mask);
   QString strCmd = cmd.join(",") + ";";
   mWebSocket->sendTextMessage(strCmd);
+
+  qDebug() << strKey << "   1";
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent *event) {
   if (mWebSocket->state() != QAbstractSocket::SocketState::ConnectedState) {
     return;
   }
+
+  QString strKey = QString::number(event->nativeVirtualKey());
   QStringList cmd;
   cmd.append("3.key");
+  cmd.append(QString::number(strKey.length()) + "." + strKey);
 
   QString mask = "0";
 
   cmd.append(QString::number(mask.length()) + "." + mask);
   QString strCmd = cmd.join(",") + ";";
   mWebSocket->sendTextMessage(strCmd);
+
+  qDebug() << strKey << "   0";
 }
 
 void MainWindow::paintEvent(QPaintEvent *event) {
   QPainter painter(this);
   painter.drawImage(0, 0, mImage);
   painter.end();
+}
+
+void MainWindow::wheelEvent(QWheelEvent *event) {
+
+  if (mWebSocket->state() != QAbstractSocket::SocketState::ConnectedState) {
+    return;
+  }
+  QStringList cmd;
+  cmd.append("5.mouse");
+  QString x = QString::number(event->x());
+  QString y = QString::number(event->y());
+  QString mask = "16";
+  if (event->delta() > 0) {
+    mask = "8";
+  }
+
+  cmd.append(QString::number(x.length()) + "." + x);
+  cmd.append(QString::number(y.length()) + "." + y);
+  cmd.append(QString::number(mask.length()) + "." + mask);
+  QString strCmd = cmd.join(",") + ";";
+  mWebSocket->sendTextMessage(strCmd);
 }
 
 void MainWindow::doMsg(SyncMsg *msg) {

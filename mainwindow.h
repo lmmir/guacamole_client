@@ -48,6 +48,7 @@ protected:
   void keyPressEvent(QKeyEvent *event);
   void keyReleaseEvent(QKeyEvent *event);
   void paintEvent(QPaintEvent *event);
+  void wheelEvent(QWheelEvent *event);
 
 public:
   void doMsg(SyncMsg *msg);

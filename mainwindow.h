@@ -14,7 +14,9 @@ class MainWindow : public QMainWindow,
                    public SyncMsg,
                    public ImgMsg,
                    public BlobMsg,
-                   public EndMsg {
+                   public EndMsg,
+                   public SizeMsg,
+                   public CursorMsg {
   Q_OBJECT
 
 public:
@@ -22,7 +24,7 @@ public:
   ~MainWindow();
 
 protected:
-  void renderImage(QImage &image);
+  void renderImage();
 
 protected slots:
   void slotTextMessageReceived(const QString &text);
@@ -32,10 +34,10 @@ protected slots:
 private:
   QWebSocket *mWebSocket;
 
-  ImgMsg::Image mImage5;
   Ui::MainWindow *ui;
 
   QImage mImage;
+  QMap<int, ImgMsg::Image> mMapImg;
 
 protected:
   void mousePressEvent(QMouseEvent *event);
@@ -52,5 +54,7 @@ public:
   void doMsg(ImgMsg *msg);
   void doMsg(BlobMsg *msg);
   void doMsg(EndMsg *msg);
+  void doMsg(SizeMsg *msg);
+  void doMsg(CursorMsg *msg);
 };
 #endif // MAINWINDOW_H

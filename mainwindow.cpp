@@ -21,7 +21,7 @@ MainWindow::MainWindow(QString token, QWidget *parent)
       QString("wss://%2/guacamole/"
               "websocket-tunnel?token="
               "%1&GUAC_"
-              "DATA_SOURCE=mysql&GUAC_ID=1699&GUAC_TYPE=c&GUAC_WIDTH=1211&GUAC_"
+              "DATA_SOURCE=mysql&GUAC_ID=1700&GUAC_TYPE=c&GUAC_WIDTH=1211&GUAC_"
               "HEIGHT="
               "891&GUAC_DPI=96&GUAC_AUDIO=audio%2FL8&GUAC_AUDIO=audio%2FL16&"
               "GUAC_IMAGE="
@@ -33,7 +33,6 @@ MainWindow::MainWindow(QString token, QWidget *parent)
 
   this->showFullScreen();
 
-  ui->label->setVisible(false);
   this->setMouseTracking(true);
   this->grabKeyboard();
   this->centralWidget()->setMouseTracking(true);
@@ -46,16 +45,36 @@ MainWindow::~MainWindow() {
   delete ui;
 }
 
-void MainWindow::renderImage(QImage &image) {
-  QPainter painter(&mImage);
-  painter.setCompositionMode(QPainter::CompositionMode_Source);
-  // painter.fillRect(imageWithOverlay.rect(), Qt::transparent);
+void MainWindow::renderImage() {
 
-  painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-  painter.drawImage(mImage5.x.toInt(), mImage5.y.toInt(), image);
+  //  QImage image = QImage::fromData(mMapImg[stream].data);
+  //  if (image.isNull()) {
+  //    return;
+  //  }
+
+  QPainter painter(&mImage);
+  // painter.setCompositionMode(QPainter::CompositionMode_Source);
+
+  // painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
+  for (auto &item : mMapImg) {
+    if (item.layer == -1)
+      continue;
+    QImage image = QImage::fromData(item.data);
+    if (image.isNull()) {
+      continue;
+    }
+    painter.drawImage(item.x.toInt(), item.y.toInt(), image);
+  }
+
   painter.end();
-  //  ui->label->setPixmap(QPixmap::fromImage(mImage));
+
   this->update();
+  for (auto it = mMapImg.begin(); it != mMapImg.end(); it++) {
+    if (it.value().layer > 0) {
+      mMapImg.erase(it);
+    }
+  }
 }
 
 void MainWindow::slotTextMessageReceived(const QString &text) {
@@ -84,7 +103,7 @@ void MainWindow::slotError(QAbstractSocket::SocketError error) {
 
 void MainWindow::mousePressEvent(QMouseEvent *event) {
   // qDebug() << __FUNCTION__;
-  qDebug() << __FUNCTION__;
+  // qDebug() << __FUNCTION__;
 
   if (mWebSocket->state() != QAbstractSocket::SocketState::ConnectedState) {
     return;
@@ -129,7 +148,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event) {
 void MainWindow::mouseDoubleClickEvent(QMouseEvent *event) {
 
   // qDebug() << __FUNCTION__;
-  qDebug() << __FUNCTION__;
+  // qDebug() << __FUNCTION__;
   QString strCmd;
   QStringList cmd;
 
@@ -222,7 +241,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     return;
   }
 
-  qDebug() << event->modifiers();
+  // qDebug() << event->modifiers();
   QString strKey = QString::number(event->key());
   QStringList cmd;
   cmd.append("3.key");
@@ -262,22 +281,65 @@ void MainWindow::doMsg(SyncMsg *msg) {
 }
 
 void MainWindow::doMsg(ImgMsg *msg) {
-  mImage5.data.clear();
-  mImage5.x = msg->getParam(5).split(".")[1];
-  mImage5.y = msg->getParam(6).split(".")[1];
+  ImgMsg::Image img;
+  int stream = msg->getParam(1).toInt();
+  img.x = msg->getParam(5);
+  img.y = msg->getParam(6);
+
+  img.layer = msg->getParam(3).toInt();
+  img.mask = msg->getParam(2).toInt();
+  img.stream = msg->getParam(1).toInt();
+
+  mMapImg[stream] = img;
+
+  // qDebug() << "img:" << img.mask << img.layer << img.x << img.y;
 }
 
 void MainWindow::doMsg(BlobMsg *msg) {
-  int index = msg->getParam(2).indexOf(".");
-  QString str = msg->getParam(2).mid(index + 1);
+  int stream = msg->getParam(1).toInt();
+  QString str = msg->getParam(2);
   QByteArray ba = QByteArray::fromBase64(str.toUtf8());
-  mImage5.data.append(ba);
+  mMapImg[stream].data.append(ba);
 }
 
 void MainWindow::doMsg(EndMsg *msg) {
-  QImage image = QImage::fromData(mImage5.data);
-  if (image.isNull()) {
+  int stream = msg->getParam(1).toInt();
+  if (mMapImg.find(stream) == mMapImg.end()) {
     return;
   }
-  renderImage(image);
+
+  renderImage();
+}
+
+void MainWindow::doMsg(SizeMsg *msg) {
+  int layer = msg->getParam(1).toInt();
+  int width = msg->getParam(2).toInt();
+  int height = msg->getParam(3).toInt();
+  // qDebug() << "size:" << layer << width << height;
+}
+
+void MainWindow::doMsg(CursorMsg *msg) {
+
+  for (auto &item : mMapImg) {
+    if (item.layer == -1) {
+      QImage image = QImage::fromData(item.data);
+      if (image.isNull()) {
+        break;
+      }
+      int x = msg->getParam(1).toInt();
+      int y = msg->getParam(2).toInt();
+      int srcLayer = msg->getParam(3).toInt();
+      int srcX = msg->getParam(4).toInt();
+      int srcY = msg->getParam(5).toInt();
+      int srcWidth = msg->getParam(6).toInt();
+      int srcHeight = msg->getParam(7).toInt();
+
+      QCursor cursor(QPixmap::fromImage(image));
+      setCursor(cursor);
+      // qDebug() << "cursor:" << msg->getMsg();
+      break;
+    }
+  }
+
+  // this->update();
 }

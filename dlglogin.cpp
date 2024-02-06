@@ -19,10 +19,20 @@ void DlgLogin::on_buttonBox_accepted() {
                     "application/x-www-form-urlencoded");
   request.setUrl(QUrl(QString("https://%1/guacamole/api/tokens")
                           .arg(QApplication::arguments()[1])));
+
+  QString account = ui->led_account->text();
+
+  QString pwd = ui->led_password->text();
+
+  if (account.isEmpty()) {
+    account = QApplication::arguments()[2];
+  }
+  if (pwd.isEmpty()) {
+    pwd = QApplication::arguments()[3];
+  }
   QByteArray ba = QString("username=%1&password=%2")
-                      .arg(QApplication::arguments()[2])
-                      .arg(QString::fromUtf8(QUrl::toPercentEncoding(
-                          QApplication::arguments()[3])))
+                      .arg(account)
+                      .arg(QString::fromUtf8(QUrl::toPercentEncoding(pwd)))
                       .toUtf8();
 
   qDebug() << ba;

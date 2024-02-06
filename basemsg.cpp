@@ -13,10 +13,11 @@ BaseMsg *BaseMsg::parseMsg(const QString &strMsg) {
   if (length == 0) {
     return 0;
   }
-  qDebug() << strMsg;
+  // qDebug() << strMsg;
 
   QString opCode = strListArg[0].mid(index + 1);
   if (sMapMsg.find(opCode) == sMapMsg.end()) {
+    qDebug() << opCode;
     return 0;
   }
 

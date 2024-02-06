@@ -14,12 +14,13 @@ protected:
 
 public:
   QString getParam(int index) { //
-    return mArgList[index];
+    return mArgList[index].split(".")[1];
   }
 
   QString getName() { //
     return mMsgName;
   }
+  QString getMsg() { return mArgList.join(","); }
 
   void setArgList(const QStringList &argList);
 
@@ -53,6 +54,9 @@ public:
     QString x;
     QString y;
     QByteArray data;
+    int mask;
+    int stream;
+    int layer;
   };
 
 public:
@@ -76,20 +80,35 @@ public:
 
 protected:
 };
+class CursorMsg : public TBaseMsg<CursorMsg> {
+public:
+  CursorMsg() { //
+    registerMsg("cursor", this);
+  }
 
+protected:
+};
+class SizeMsg : public TBaseMsg<SizeMsg> {
+public:
+  SizeMsg() { //
+    registerMsg("size", this);
+  }
+
+protected:
+};
 class SyncMsg : public TBaseMsg<SyncMsg> {
 public:
   SyncMsg() { //
     registerMsg("sync", this);
   }
   QString createResponse() {
-    int index = this->getParam(1).indexOf(".");
-    QString str = this->getParam(1).mid(index + 1);
+
+    QString str = this->getParam(1);
     QString strSync = "4.sync,13." + str + ";";
     return strSync;
   }
 
 protected:
 };
-class AllMsg {};
+
 #endif // BASEMSG_H
